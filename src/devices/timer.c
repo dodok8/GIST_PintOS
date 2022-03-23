@@ -90,10 +90,21 @@ void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
+  enum intr_level old_level;
 
   ASSERT (intr_get_level () == INTR_ON);
   while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  {  
+    if (thread_current()->status!=THREAD_BLOCKED)
+    {
+      old_level=intr_disable();
+      thread_block ();
+      intr_set_level(old_level);
+    }
+    printf("now checking!!!!!!\n");
+  }
+  printf("It is endgame now!!!!\n");
+  thread_unblock(thread_current());
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
