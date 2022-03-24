@@ -4,6 +4,7 @@
 #include <random.h>
 #include <stdio.h>
 #include <string.h>
+#include <list.h>
 #include "threads/flags.h"
 #include "threads/interrupt.h"
 #include "threads/intr-stubs.h"
@@ -27,6 +28,9 @@ static struct list ready_list;
 /* List of all processes.  Processes are added to this list
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
+
+//storing sleeping processes. I use it from pintos 1st project
+static struct list sleep_list;
 
 /* Idle thread. */
 static struct thread *idle_thread;
@@ -92,6 +96,7 @@ thread_init (void)
   lock_init (&tid_lock);
   list_init (&ready_list);
   list_init (&all_list);
+  list_init (&sleep_list);
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread ();
@@ -133,10 +138,51 @@ thread_tick (void)
 #endif
   else
     kernel_ticks++;
-
+  
+  unblock_proper_thread();
+  
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return ();
+}
+
+//function to find processes that need to unblock(wake up) (pintos 1st project)
+void
+unblock_proper_thread(void)
+{
+  if(!list_empty(&sleep_list))
+  {
+    struct list_elem *tmp_element=list_begin(&sleep_list);
+    int64_t cur_tick=timer_ticks();
+    while(tmp_element!=list_end(&sleep_list))
+    {
+      struct thread *tmp_thread=list_entry(tmp_element, struct thread, elem);
+      if(tmp_thread->sleeptick<=cur_tick)
+      {
+        struct list_elem *tmp_print=list_begin(&sleep_list);
+        while(tmp_print!=list_end(&sleep_list))
+        {
+          printf("tid: %d %d ", list_entry(tmp_print, struct thread, elem)->tid, list_entry(tmp_print, struct thread, elem)->status);
+          tmp_print=list_next(tmp_print);
+        }
+        printf("\n");
+
+        tmp_element=list_remove(tmp_element);
+        tmp_print=list_begin(&sleep_list);
+        while(tmp_print!=list_end(&sleep_list))
+        {
+          printf("tid: %d ", list_entry(tmp_print, struct thread, elem)->tid);
+          tmp_print=list_next(tmp_print);
+        }
+	printf("\n");
+        thread_unblock(tmp_thread);
+      }
+      else
+      {
+        tmp_element=list_next(tmp_element);
+      }
+    }
+  }
 }
 
 /* Prints thread statistics. */
@@ -221,10 +267,15 @@ thread_create (const char *name, int priority,
 void
 thread_block (void) 
 {
+  //printf("%d is now try to block\n", thread_current()->tid);
   ASSERT (!intr_context ());
   ASSERT (intr_get_level () == INTR_OFF);
 
-  thread_current ()->status = THREAD_BLOCKED;
+  list_push_back(&sleep_list, &thread_current()->elem);
+  struct thread *t=thread_current();
+  printf("%d@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n", t->status);
+  t->status = THREAD_BLOCKED;
+  printf("%d thread's status when block: %d\n", t->tid, t->status);
   schedule ();
 }
 
@@ -240,6 +291,8 @@ void
 thread_unblock (struct thread *t) 
 {
   enum intr_level old_level;
+  
+  printf("%d's current status: %d\n", t->tid, t->status);
 
   ASSERT (is_thread (t));
 
