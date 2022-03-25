@@ -92,7 +92,7 @@ void timer_sleep(int64_t tick)
   ASSERT(intr_get_level() == INTR_ON);
   thread_current()->sleeptick = start + tick;
   old_level = intr_disable();
-  thread_block(); // We need to prevent call this when current is idel
+  thread_block();
   intr_set_level(old_level);
 }
 

@@ -260,16 +260,19 @@ tid_t thread_create(const char *name, int priority,
    primitives in synch.h. */
 void thread_block(void)
 {
-  // printf("%d is now try to block\n", thread_current()->tid);
+  struct thread *cur = thread_current();
+  enum intr_level old_level;
+
   ASSERT(!intr_context());
   ASSERT(intr_get_level() == INTR_OFF);
 
-  list_push_back(&sleep_list, &thread_current()->elem);
-  struct thread *t = thread_current();
-  printf("%d@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n", t->status);
-  t->status = THREAD_BLOCKED;
-  printf("%d thread's status when block: %d\n", t->tid, t->status);
-  schedule();
+  old_level = intr_disable();
+  if (cur != idle_thread)
+  {
+    list_push_back(&sleep_list, &thread_current()->elem);
+    cur->status = THREAD_BLOCKED;
+    schedule();
+  }
 }
 
 /* Transitions a blocked thread T to the ready-to-run state.
@@ -317,7 +320,6 @@ thread_current(void)
      recursion can cause stack overflow. */
   ASSERT(is_thread(t));
   ASSERT(t->status == THREAD_RUNNING);
-
   return t;
 }
 
