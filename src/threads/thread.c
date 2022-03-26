@@ -29,7 +29,7 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
-// storing sleeping processes. I use it from pintos 1st project
+// List of THREAD_BLOCKED processes. 1st PintOS
 static struct list sleep_list;
 
 /* Idle thread. */
@@ -158,19 +158,14 @@ void unblock_proper_thread(void)
         struct list_elem *tmp_print = list_begin(&sleep_list);
         while (tmp_print != list_end(&sleep_list))
         {
-          printf("tid: %d %d ", list_entry(tmp_print, struct thread, elem)->tid, list_entry(tmp_print, struct thread, elem)->status);
           tmp_print = list_next(tmp_print);
         }
-        printf("\n");
-
         tmp_element = list_remove(tmp_element);
         tmp_print = list_begin(&sleep_list);
         while (tmp_print != list_end(&sleep_list))
         {
-          printf("tid: %d ", list_entry(tmp_print, struct thread, elem)->tid);
           tmp_print = list_next(tmp_print);
         }
-        printf("\n");
         thread_unblock(tmp_thread);
       }
       else
@@ -286,8 +281,6 @@ void thread_block(void)
 void thread_unblock(struct thread *t)
 {
   enum intr_level old_level;
-
-  printf("%d's current status: %d\n", t->tid, t->status);
 
   ASSERT(is_thread(t));
 
