@@ -120,6 +120,17 @@ void thread_start(void)
   sema_down(&idle_started);
 }
 
+static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
+{
+  struct thread *a_thread=list_entry(a, struct thread, elem);
+  struct thread *b_thread=list_entry(b, struct thread, elem);
+
+  if(a_thread->priority<b_thread->priority)
+    return true;
+  else
+    return false;
+}
+
 /* Called by the timer interrupt handler at each timer tick.
    Thus, this function runs in an external interrupt context. */
 void thread_tick(void)
@@ -287,6 +298,7 @@ void thread_unblock(struct thread *t)
   old_level = intr_disable();
   ASSERT(t->status == THREAD_BLOCKED);
   list_push_back(&ready_list, &t->elem);
+  list_sort(&ready_list, less_pri_comp, 0);
   t->status = THREAD_READY;
   intr_set_level(old_level);
 }
@@ -353,7 +365,10 @@ void thread_yield(void)
 
   old_level = intr_disable();
   if (cur != idle_thread)
+  {
     list_push_back(&ready_list, &cur->elem);
+    list_sort(&ready_list, less_pri_comp, 0);
+  }
   cur->status = THREAD_READY;
   schedule();
   intr_set_level(old_level);
