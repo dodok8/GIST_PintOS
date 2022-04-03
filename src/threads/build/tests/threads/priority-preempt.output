@@ -1,0 +1,21 @@
+qemu-system-i386 -hda /tmp/vGsIM_mnry.dsk -m 4 -net none -nographic -monitor null
+PiLo hda1
+Loading.........
+Kernel command line: -q run priority-preempt
+Pintos booting with 4,088 kB RAM...
+382 pages available in kernel pool.
+382 pages available in user pool.
+Calibrating timer...  235,520,000 loops/s.
+Boot complete.
+Executing 'priority-preempt':
+(priority-preempt) begin
+(priority-preempt) The high-priority thread should have already completed.
+(priority-preempt) end
+Execution of 'priority-preempt' complete.
+Timer: 30 ticks
+Thread: 4 idle ticks, 26 kernel ticks, 0 user ticks
+Console: 472 characters output
+Keyboard: 0 keys pressed
+Powering off...
+
+TIMEOUT after 88 seconds of wall-clock time - load average: 0.56, 0.47, 0.30
