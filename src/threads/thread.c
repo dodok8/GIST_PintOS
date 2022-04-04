@@ -120,6 +120,7 @@ void thread_start(void)
   sema_down(&idle_started);
 }
 
+// function to compare threads and use result in sort (pintos 2nd project)
 static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
 {
   struct thread *a_thread=list_entry(a, struct thread, elem);
@@ -147,11 +148,25 @@ void thread_tick(void)
   else
     kernel_ticks++;
 
+  list_sort(&ready_list, less_pri_comp, 0);
+  decide_preemption();
   unblock_proper_thread();
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
     intr_yield_on_return();
+}
+
+// function to compare to decide preemption of next thread by yield (pintos 2nd project)
+void decide_preemption()
+{
+  struct thread * cur_t = thread_current();
+  struct thread * next_t = list_entry(list_begin(&ready_list), struct thread, elem);
+
+  if(cur_t->priority < next_t->priority)
+  {
+    thread_yield();
+  }
 }
 
 // function to find processes that need to unblock(wake up) (pintos 1st project)

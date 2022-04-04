@@ -119,6 +119,9 @@ void thread_print_stats (void);
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
+static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
+void decide_preemption()
+
 void thread_block (void);
 void thread_unblock (struct thread *);
 
