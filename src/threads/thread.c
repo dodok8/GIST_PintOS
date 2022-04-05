@@ -417,8 +417,10 @@ void thread_set_priority(int new_priority)
   struct thread *t = thread_current():
   if(t->priority == PRI_MAX) {
     thread_yield();
+    //While yield, current thread is inserted in order to ready thread, so you don't need to sort.
   } else {
     t->priority = new_priority;
+    list_sort(&ready_list, less_pri_comp, 0);
   }
 }
 
