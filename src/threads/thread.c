@@ -123,10 +123,10 @@ void thread_start(void)
 // function to compare threads and use result in sort (pintos 2nd project)
 static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
 {
-  struct thread *a_thread=list_entry(a, struct thread, elem);
-  struct thread *b_thread=list_entry(b, struct thread, elem);
+  struct thread *a_thread = list_entry(a, struct thread, elem);
+  struct thread *b_thread = list_entry(b, struct thread, elem);
 
-  if(a_thread->priority<b_thread->priority)
+  if(a_thread->priority < b_thread->priority)
     return true;
   else
     return false;
@@ -408,7 +408,14 @@ void thread_foreach(thread_action_func *func, void *aux)
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority)
 {
-  thread_current()->priority = new_priority;
+  ASSERT(PRI_MIN > new_priority && priority > PRI_MAX);
+
+  struct thread *t = thread_current():
+  if(t->priority == PRI_MAX) {
+    thread_yield();
+  } else {
+    t->priority = new_priority;
+  }
 }
 
 /* Returns the current thread's priority. */
