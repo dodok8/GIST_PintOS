@@ -162,10 +162,14 @@ void decide_preemption()
 {
   struct thread * cur_t = thread_current();
   struct thread * next_t = list_entry(list_begin(&ready_list), struct thread, elem);
+  
+  enum intr_level old_level;
 
   if(cur_t->priority < next_t->priority)
   {
+    old_level = intr_disable();
     thread_yield();
+    intr_set_level(old_level);
   }
 }
 
