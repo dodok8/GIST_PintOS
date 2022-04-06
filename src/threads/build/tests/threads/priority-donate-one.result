@@ -1,2 +1,12 @@
 FAIL
-run: TIMEOUT after 61 seconds of wall-clock time - load average: 0.28, 0.21, 0.21
+Kernel panic in run: PANIC at ../../lib/kernel/list.c:84 in list_next(): assertion `is_head (elem) || is_interior (elem)' failed.
+Call stack: 0xc002853c 0xc0028973 0xc0028d88 0xc0020e90 0xc0022c36 0xc0022d03 0xc002ae87 0xc0021189
+Translation of call stack:
+0xc002853c: debug_panic (.../../lib/kernel/debug.c:38)
+0xc0028973: is_sorted (.../../lib/kernel/list.c:344)
+0xc0028d88: list_insert_ordered (.../../lib/kernel/list.c:455)
+0xc0020e90: thread_block (..../../threads/thread.c:289)
+0xc0022c36: sema_down (.../../../threads/synch.c:69)
+0xc0022d03: lock_acquire (...../../threads/synch.c:200)
+0xc002ae87: acquire1_thread_func (.../priority-donate-one.c:51)
+0xc0021189: kernel_thread (..../../threads/thread.c:513)

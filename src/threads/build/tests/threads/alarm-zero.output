@@ -1,4 +1,4 @@
-qemu-system-i386 -hda /tmp/7tTnTJxL1R.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/yncFKtgfnm.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run alarm-zero
@@ -18,4 +18,4 @@ Console: 385 characters output
 Keyboard: 0 keys pressed
 Powering off...
 
-TIMEOUT after 61 seconds of wall-clock time - load average: 0.20, 0.12, 0.18
+TIMEOUT after 61 seconds of wall-clock time - load average: 0.00, 0.00, 0.00

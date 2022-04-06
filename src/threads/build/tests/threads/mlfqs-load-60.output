@@ -1,0 +1,19 @@
+qemu-system-i386 -hda /tmp/KLVCJn6TK4.dsk -m 4 -net none -nographic -monitor null
+PiLo hda1
+Loading.........
+Kernel command line: -q -mlfqs run mlfqs-load-60
+Pintos booting with 4,088 kB RAM...
+382 pages available in kernel pool.
+382 pages available in user pool.
+Kernel PANIC at ../../threads/thread.c:379 in thread_yield(): assertion `!intr_context()' failed.
+Call stack: 0xc002851c 0xc0020cca 0xc0020d4a 0xc0021265 0xc0023e0b 0xc00219d6 0xc0021b0d 0xc00212f7 0xc00210e1.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 1 ticks
+Thread: 1 idle ticks, 0 kernel ticks, 0 user ticks
+Console: 585 characters output
+Keyboard: 0 keys pressed
+Powering off...
+
+TIMEOUT after 481 seconds of wall-clock time - load average: 0.00, 0.05, 0.11
