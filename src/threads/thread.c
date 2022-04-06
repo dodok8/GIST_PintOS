@@ -96,7 +96,7 @@ void thread_init(void)
   list_init(&ready_list);
   list_init(&all_list);
   list_init(&sleep_list);
-  next_wakeup_tick=INT64_MAX;
+  next_wakeup_tick = INT64_MAX;
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread();
@@ -127,7 +127,7 @@ static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
 
-  if(a_thread->priority > b_thread->priority)
+  if (a_thread->priority > b_thread->priority)
     return true;
   else
     return false;
@@ -149,10 +149,10 @@ void thread_tick(void)
   else
     kernel_ticks++;
 
-  //list_sort(&ready_list, &less_pri_comp, 0);
-  //decide_preemption();
-  //if(list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick <= timer_ticks())
-    //unblock_proper_thread();
+  // list_sort(&ready_list, &less_pri_comp, 0);
+  // decide_preemption();
+  // if(list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick <= timer_ticks())
+  // unblock_proper_thread();
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
@@ -162,10 +162,10 @@ void thread_tick(void)
 // function to compare to decide preemption of next thread by yield (pintos 2nd project)
 void decide_preemption()
 {
-  struct thread * cur_t = thread_current();
-  struct thread * next_t = list_entry(list_begin(&ready_list), struct thread, elem);
-  
-  if(cur_t->priority < next_t->priority)
+  struct thread *cur_t = thread_current();
+  struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
+
+  if (cur_t->priority < next_t->priority)
   {
     thread_yield();
   }
@@ -178,7 +178,7 @@ void unblock_proper_thread(void)
   {
     struct list_elem *tmp_element = list_begin(&sleep_list);
     int64_t cur_tick = timer_ticks();
-    next_wakeup_tick=INT64_MAX;
+    next_wakeup_tick = INT64_MAX;
     while (tmp_element != list_end(&sleep_list))
     {
       struct thread *tmp_thread = list_entry(tmp_element, struct thread, elem);
@@ -293,7 +293,7 @@ void thread_sleep(int64_t tick)
   ASSERT(!intr_context());
   ASSERT(intr_get_level() == INTR_OFF);
 
-  cur->sleeptick=tick;
+  cur->sleeptick = tick;
 
   if (cur != idle_thread)
   {
@@ -307,9 +307,9 @@ void thread_sleep(int64_t tick)
 
 void set_next_wakeup_tick()
 {
-  int64_t tmp_t=list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick;
-  if(tmp_t < next_wakeup_tick)
-    next_wakeup_tick=tmp_t;
+  int64_t tmp_t = list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick;
+  if (tmp_t < next_wakeup_tick)
+    next_wakeup_tick = tmp_t;
 }
 
 int64_t get_next_wakeup_tick()
@@ -322,7 +322,7 @@ static bool less_sleeptick_comp(struct list_elem *a, struct list_elem *b, void *
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
 
-  if(a_thread->sleeptick < b_thread->sleeptick)
+  if (a_thread->sleeptick < b_thread->sleeptick)
     return true;
   else
     return false;
@@ -345,8 +345,8 @@ void thread_unblock(struct thread *t)
   old_level = intr_disable();
   ASSERT(t->status == THREAD_BLOCKED);
   list_insert_ordered(&ready_list, &t->elem, &less_pri_comp, NULL);
-  //list_push_back(&ready_list, &t->elem);
-  //list_sort(&ready_list, &less_pri_comp, 0);
+  // list_push_back(&ready_list, &t->elem);
+  // list_sort(&ready_list, &less_pri_comp, 0);
   t->status = THREAD_READY;
   intr_set_level(old_level);
 }
@@ -415,8 +415,8 @@ void thread_yield(void)
   if (cur != idle_thread)
   {
     list_insert_ordered(&ready_list, &cur->elem, &less_pri_comp, NULL);
-    //list_push_back(&ready_list, &cur->elem);
-    //list_sort(&ready_list, &less_pri_comp, 0);
+    // list_push_back(&ready_list, &cur->elem);
+    // list_sort(&ready_list, &less_pri_comp, 0);
   }
   cur->status = THREAD_READY;
   schedule();
@@ -443,10 +443,8 @@ void thread_foreach(thread_action_func *func, void *aux)
 void thread_set_priority(int new_priority)
 {
   ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX);
-
   struct thread *t = thread_current();
   t->priority = new_priority;
-  list_sort(&ready_list, &less_pri_comp, 0);
 }
 
 /* Returns the current thread's priority. */
