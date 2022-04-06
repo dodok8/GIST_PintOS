@@ -31,7 +31,7 @@ static struct list all_list;
 
 // List of THREAD_BLOCKED processes. 1st PintOS
 static struct list sleep_list;
-
+static int64_t next_wakeup_tick;
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -96,6 +96,7 @@ void thread_init(void)
   list_init(&ready_list);
   list_init(&all_list);
   list_init(&sleep_list);
+  next_wakeup_tick=INT64_MAX;
 
   /* Set up a thread structure for the running thread. */
   initial_thread = running_thread();
@@ -126,7 +127,7 @@ static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
 
-  if(a_thread->priority < b_thread->priority)
+  if(a_thread->priority > b_thread->priority)
     return true;
   else
     return false;
@@ -148,9 +149,10 @@ void thread_tick(void)
   else
     kernel_ticks++;
 
-  list_sort(&ready_list, less_pri_comp, 0);
-  decide_preemption();
-  unblock_proper_thread();
+  //list_sort(&ready_list, &less_pri_comp, 0);
+  //decide_preemption();
+  //if(list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick <= timer_ticks())
+    //unblock_proper_thread();
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
@@ -163,13 +165,9 @@ void decide_preemption()
   struct thread * cur_t = thread_current();
   struct thread * next_t = list_entry(list_begin(&ready_list), struct thread, elem);
   
-  enum intr_level old_level;
-
   if(cur_t->priority < next_t->priority)
   {
-    old_level = intr_disable();
     thread_yield();
-    intr_set_level(old_level);
   }
 }
 
@@ -180,27 +178,19 @@ void unblock_proper_thread(void)
   {
     struct list_elem *tmp_element = list_begin(&sleep_list);
     int64_t cur_tick = timer_ticks();
+    next_wakeup_tick=INT64_MAX;
     while (tmp_element != list_end(&sleep_list))
     {
       struct thread *tmp_thread = list_entry(tmp_element, struct thread, elem);
       if (tmp_thread->sleeptick <= cur_tick)
       {
-        struct list_elem *tmp_print = list_begin(&sleep_list);
-        while (tmp_print != list_end(&sleep_list))
-        {
-          tmp_print = list_next(tmp_print);
-        }
         tmp_element = list_remove(tmp_element);
-        tmp_print = list_begin(&sleep_list);
-        while (tmp_print != list_end(&sleep_list))
-        {
-          tmp_print = list_next(tmp_print);
-        }
         thread_unblock(tmp_thread);
       }
       else
       {
-        tmp_element = list_next(tmp_element);
+        set_next_wakeup_tick();
+        break;
       }
     }
   }
@@ -273,7 +263,7 @@ tid_t thread_create(const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock(t);
-
+  decide_preemption();
   return tid;
 }
 
@@ -286,18 +276,56 @@ tid_t thread_create(const char *name, int priority,
 void thread_block(void)
 {
   struct thread *cur = thread_current();
-  enum intr_level old_level;
 
   ASSERT(!intr_context());
   ASSERT(intr_get_level() == INTR_OFF);
 
+  cur->status = THREAD_BLOCKED;
+  schedule();
+}
+
+void thread_sleep(int64_t tick)
+{
+  struct thread *cur = thread_current();
+  enum intr_level old_level;
+
   old_level = intr_disable();
+  ASSERT(!intr_context());
+  ASSERT(intr_get_level() == INTR_OFF);
+
+  cur->sleeptick=tick;
+
   if (cur != idle_thread)
   {
-    list_push_back(&sleep_list, &thread_current()->elem);
-    cur->status = THREAD_BLOCKED;
-    schedule();
+    list_insert_ordered(&sleep_list, &thread_current()->elem, &less_sleeptick_comp, NULL);
   }
+  cur->status = THREAD_BLOCKED;
+  set_next_wakeup_tick();
+  schedule();
+  intr_set_level(old_level);
+}
+
+void set_next_wakeup_tick()
+{
+  int64_t tmp_t=list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick;
+  if(tmp_t < next_wakeup_tick)
+    next_wakeup_tick=tmp_t;
+}
+
+int64_t get_next_wakeup_tick()
+{
+  return next_wakeup_tick;
+}
+
+static bool less_sleeptick_comp(struct list_elem *a, struct list_elem *b, void *aux)
+{
+  struct thread *a_thread = list_entry(a, struct thread, elem);
+  struct thread *b_thread = list_entry(b, struct thread, elem);
+
+  if(a_thread->sleeptick < b_thread->sleeptick)
+    return true;
+  else
+    return false;
 }
 
 /* Transitions a blocked thread T to the ready-to-run state.
@@ -316,8 +344,9 @@ void thread_unblock(struct thread *t)
 
   old_level = intr_disable();
   ASSERT(t->status == THREAD_BLOCKED);
-  list_push_back(&ready_list, &t->elem);
-  list_sort(&ready_list, less_pri_comp, 0);
+  list_insert_ordered(&ready_list, &t->elem, &less_pri_comp, NULL);
+  //list_push_back(&ready_list, &t->elem);
+  //list_sort(&ready_list, &less_pri_comp, 0);
   t->status = THREAD_READY;
   intr_set_level(old_level);
 }
@@ -385,8 +414,9 @@ void thread_yield(void)
   old_level = intr_disable();
   if (cur != idle_thread)
   {
-    list_push_back(&ready_list, &cur->elem);
-    list_sort(&ready_list, less_pri_comp, 0);
+    list_insert_ordered(&ready_list, &cur->elem, &less_pri_comp, NULL);
+    //list_push_back(&ready_list, &cur->elem);
+    //list_sort(&ready_list, &less_pri_comp, 0);
   }
   cur->status = THREAD_READY;
   schedule();
@@ -412,16 +442,11 @@ void thread_foreach(thread_action_func *func, void *aux)
 /* Sets the current thread's priority to NEW_PRIORITY. */
 void thread_set_priority(int new_priority)
 {
-  ASSERT(PRI_MIN <= priority && priority <= PRI_MAX);
+  ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX);
 
-  struct thread *t = thread_current():
-  if(t->priority == PRI_MAX) {
-    thread_yield();
-    //While yield, current thread is inserted in order to ready thread, so you don't need to sort.
-  } else {
-    t->priority = new_priority;
-    list_sort(&ready_list, less_pri_comp, 0);
-  }
+  struct thread *t = thread_current();
+  t->priority = new_priority;
+  list_sort(&ready_list, &less_pri_comp, 0);
 }
 
 /* Returns the current thread's priority. */

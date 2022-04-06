@@ -1,3 +1,2 @@
 Prototype mismatch: sub main::SIGVTALRM () vs none at /home/ubuntu/pintos/src/utils/pintos line 935.
 Constant subroutine SIGVTALRM redefined at /home/ubuntu/pintos/src/utils/pintos line 927.
-qemu: terminating on signal 2 from pid 4667
