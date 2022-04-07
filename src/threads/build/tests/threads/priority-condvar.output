@@ -1,14 +1,24 @@
-qemu-system-i386 -hda /tmp/smA149YBwv.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/mEjwW4LFdR.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run priority-condvar
 Pintos booting with 4,088 kB RAM...
 382 pages available in kernel pool.
 382 pages available in user pool.
-Calibrating timer...  628,326,400 loops/s.
+Calibrating timer...  419,020,800 loops/s.
 Boot complete.
 Executing 'priority-condvar':
 (priority-condvar) begin
+(priority-condvar) Thread priority 23 starting.
+(priority-condvar) Thread priority 22 starting.
+(priority-condvar) Thread priority 21 starting.
+(priority-condvar) Thread priority 30 starting.
+(priority-condvar) Thread priority 29 starting.
+(priority-condvar) Thread priority 28 starting.
+(priority-condvar) Thread priority 27 starting.
+(priority-condvar) Thread priority 26 starting.
+(priority-condvar) Thread priority 25 starting.
+(priority-condvar) Thread priority 24 starting.
 (priority-condvar) Signaling...
 (priority-condvar) Signaling...
 (priority-condvar) Signaling...
@@ -21,10 +31,8 @@ Executing 'priority-condvar':
 (priority-condvar) Signaling...
 (priority-condvar) end
 Execution of 'priority-condvar' complete.
-Timer: 29 ticks
-Thread: 4 idle ticks, 25 kernel ticks, 0 user ticks
-Console: 717 characters output
+Timer: 27 ticks
+Thread: 0 idle ticks, 27 kernel ticks, 0 user ticks
+Console: 1197 characters output
 Keyboard: 0 keys pressed
 Powering off...
-
-TIMEOUT after 61 seconds of wall-clock time - load average: 0.30, 0.39, 0.28

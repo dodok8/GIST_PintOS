@@ -1,9 +1,1 @@
-FAIL
-Kernel panic in run: PANIC at ../../threads/thread.c:320 in thread_unblock(): assertion `t->status == THREAD_BLOCKED' failed.
-Call stack: 0xc002853c 0xc0020b67 0xc002285f 0xc002ac12 0xc0021189
-Translation of call stack:
-0xc002853c: debug_panic (.../../lib/kernel/debug.c:38)
-0xc0020b67: thread_unblock (..../../threads/thread.c:321)
-0xc002285f: sema_up (...../../threads/synch.c:119)
-0xc002ac12: alarm_priority_thread (...reads/alarm-priority.c:58)
-0xc0021189: kernel_thread (..../../threads/thread.c:513)
+PASS

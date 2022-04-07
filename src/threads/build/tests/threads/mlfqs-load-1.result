@@ -1,13 +1,10 @@
 FAIL
-Kernel panic in run: PANIC at ../../threads/thread.c:379 in thread_yield(): assertion `!intr_context()' failed.
-Call stack: 0xc002851c 0xc0020cca 0xc0020d4a 0xc0021265 0xc0023e0b 0xc00219d6 0xc0021b0d 0xc00212f7 0xc00210e1
+Kernel panic in run: PANIC at ../../tests/threads/tests.c:93 in fail(): test failed
+Call stack: 0xc002866c 0xc002a544 0xc002c2fa 0xc002a58a 0xc00207d1 0xc0020771
 Translation of call stack:
-0xc002851c: debug_panic (.../../lib/kernel/debug.c:38)
-0xc0020cca: thread_yield (..../../threads/thread.c:381)
-0xc0020d4a: decide_preemption (..../../threads/thread.c:170)
-0xc0021265: thread_tick (..../../threads/thread.c:153)
-0xc0023e0b: timer_interrupt (...../../devices/timer.c:168)
-0xc00219d6: intr_handler (..../threads/interrupt.c:367)
-0xc0021b0d: intr_entry (threads/intr-stubs.S:38)
-0xc00212f7: idle (..../../threads/thread.c:481)
-0xc00210e1: kernel_thread (..../../threads/thread.c:496)
+0xc002866c: debug_panic (.../../lib/kernel/debug.c:38)
+0xc002a544: run_test (.../tests/threads/tests.c:48)
+0xc002c2fa: test_mlfqs_load_1 (...threads/mlfqs-load-1.c:41)
+0xc002a58a: run_test (.../tests/threads/tests.c:57)
+0xc00207d1: run_task (.../../../threads/init.c:292)
+0xc0020771: run_actions (.../../../threads/init.c:341)
