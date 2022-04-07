@@ -122,7 +122,7 @@ void thread_start(void)
 }
 
 // function to compare threads and use result in sort (pintos 2nd project)
-static bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
+bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
 {
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
@@ -148,11 +148,6 @@ void thread_tick(void)
 #endif
   else
     kernel_ticks++;
-
-  // list_sort(&ready_list, &less_pri_comp, 0);
-  // decide_preemption();
-  // if(list_entry(list_begin(&sleep_list), struct thread, elem)->sleeptick <= timer_ticks())
-  // unblock_proper_thread();
 
   /* Enforce preemption. */
   if (++thread_ticks >= TIME_SLICE)
@@ -317,7 +312,7 @@ int64_t get_next_wakeup_tick()
   return next_wakeup_tick;
 }
 
-static bool less_sleeptick_comp(struct list_elem *a, struct list_elem *b, void *aux)
+bool less_sleeptick_comp(struct list_elem *a, struct list_elem *b, void *aux)
 {
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
@@ -345,8 +340,6 @@ void thread_unblock(struct thread *t)
   old_level = intr_disable();
   ASSERT(t->status == THREAD_BLOCKED);
   list_insert_ordered(&ready_list, &t->elem, &less_pri_comp, NULL);
-  // list_push_back(&ready_list, &t->elem);
-  // list_sort(&ready_list, &less_pri_comp, 0);
   t->status = THREAD_READY;
   intr_set_level(old_level);
 }
@@ -415,8 +408,6 @@ void thread_yield(void)
   if (cur != idle_thread)
   {
     list_insert_ordered(&ready_list, &cur->elem, &less_pri_comp, NULL);
-    // list_push_back(&ready_list, &cur->elem);
-    // list_sort(&ready_list, &less_pri_comp, 0);
   }
   cur->status = THREAD_READY;
   schedule();
@@ -445,6 +436,10 @@ void thread_set_priority(int new_priority)
   ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX);
   struct thread *t = thread_current();
   t->priority = new_priority;
+  struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
+  
+  if(t->priority < next_t->priority)
+    thread_yield();
 }
 
 /* Returns the current thread's priority. */

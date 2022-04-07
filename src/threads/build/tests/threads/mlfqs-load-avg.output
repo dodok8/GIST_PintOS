@@ -1,4 +1,4 @@
-qemu-system-i386 -hda /tmp/T2Ayx_C64x.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/VdXgIxmJlM.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q -mlfqs run mlfqs-load-avg

@@ -1,11 +1,11 @@
-qemu-system-i386 -hda /tmp/mEjwW4LFdR.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/QbsB0WzewX.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run priority-condvar
 Pintos booting with 4,088 kB RAM...
 382 pages available in kernel pool.
 382 pages available in user pool.
-Calibrating timer...  419,020,800 loops/s.
+Calibrating timer...  523,468,800 loops/s.
 Boot complete.
 Executing 'priority-condvar':
 (priority-condvar) begin
