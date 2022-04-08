@@ -1,4 +1,4 @@
-qemu-system-i386 -hda /tmp/9Dz7yntDf3.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/ncaqwPBbHG.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run priority-donate-multiple
@@ -9,12 +9,12 @@ Calibrating timer...  628,326,400 loops/s.
 Boot complete.
 Executing 'priority-donate-multiple':
 (priority-donate-multiple) begin
-(priority-donate-multiple) Main thread should have priority 32.  Actual priority: 31.
-(priority-donate-multiple) Main thread should have priority 33.  Actual priority: 31.
+(priority-donate-multiple) Main thread should have priority 32.  Actual priority: 32.
+(priority-donate-multiple) Main thread should have priority 33.  Actual priority: 33.
 (priority-donate-multiple) Thread b acquired lock b.
 (priority-donate-multiple) Thread b finished.
 (priority-donate-multiple) Thread b should have just finished.
-(priority-donate-multiple) Main thread should have priority 32.  Actual priority: 31.
+(priority-donate-multiple) Main thread should have priority 32.  Actual priority: 32.
 (priority-donate-multiple) Thread a acquired lock a.
 (priority-donate-multiple) Thread a finished.
 (priority-donate-multiple) Thread a should have just finished.

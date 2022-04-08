@@ -1,4 +1,4 @@
-qemu-system-i386 -hda /tmp/5N_4yq7A32.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/Km1b8XN5Gq.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run priority-change

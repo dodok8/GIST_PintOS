@@ -95,6 +95,13 @@ struct thread
     
     int64_t sleeptick;
 
+    //for pintos 2nd project start
+    int real_priority;
+    struct list donation_list;
+    struct lock *cur_waiting_lock;
+    struct list_elem donationelem;
+    //for pintos 2nd project end
+
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
@@ -121,6 +128,7 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
 bool less_sleeptick_comp(struct list_elem *a, struct list_elem *b, void *aux);
 bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux);
+bool less_donation_pri_comp(struct list_elem *a, struct list_elem *b, void *aux);
 void decide_preemption(void);
 
 void thread_sleep(int64_t);

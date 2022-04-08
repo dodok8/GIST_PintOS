@@ -133,6 +133,17 @@ bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
     return false;
 }
 
+bool less_donation_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
+{
+  struct thread *a_thread = list_entry(a, struct thread, donationelem);
+  struct thread *b_thread = list_entry(b, struct thread, donationelem);
+
+  if (a_thread->priority > b_thread->priority)
+    return true;
+  else
+    return false;
+}
+
 /* Called by the timer interrupt handler at each timer tick.
    Thus, this function runs in an external interrupt context. */
 void thread_tick(void)
@@ -435,8 +446,17 @@ void thread_set_priority(int new_priority)
 {
   ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX);
   struct thread *t = thread_current();
+  t->real_priority = new_priority;
   t->priority = new_priority;
   struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
+
+  if (!list_empty(&t->donation_list))
+  {
+    list_sort(&t->donation_list, &less_pri_comp, NULL);
+    struct thread *next_donation_t=list_entry(list_front(&t->donation_list), struct thread, donationelem);
+    if(t->priority < next_donation_t->priority)
+      t->priority=next_donation_t->priority;
+  }
   
   if(t->priority < next_t->priority)
     thread_yield();
@@ -444,8 +464,7 @@ void thread_set_priority(int new_priority)
 
 /* Returns the current thread's priority. */
 int thread_get_priority(void)
-{
-  
+{ 
   return thread_current()->priority;
 }
 
@@ -566,6 +585,9 @@ init_thread(struct thread *t, const char *name, int priority)
   t->priority = priority;
   t->magic = THREAD_MAGIC;
   list_push_back(&all_list, &t->allelem);
+  t->real_priority = t->priority;
+  list_init(&t->donation_list);
+  t->cur_waiting_lock=NULL;
 }
 
 /* Allocates a SIZE-byte frame at the top of thread T's stack and
