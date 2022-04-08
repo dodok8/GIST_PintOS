@@ -1,11 +1,11 @@
-qemu-system-i386 -hda /tmp/k18F9T9KKL.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/gXG7sSexYE.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q -mlfqs run mlfqs-load-60
 Pintos booting with 4,088 kB RAM...
 382 pages available in kernel pool.
 382 pages available in user pool.
-Calibrating timer...  471,040,000 loops/s.
+Calibrating timer...  441,548,800 loops/s.
 Boot complete.
 Executing 'mlfqs-load-60':
 (mlfqs-load-60) begin
@@ -103,8 +103,8 @@ Executing 'mlfqs-load-60':
 (mlfqs-load-60) After 178 seconds, load average=0.00.
 (mlfqs-load-60) end
 Execution of 'mlfqs-load-60' complete.
-Timer: 18827 ticks
-Thread: 12800 idle ticks, 6027 kernel ticks, 0 user ticks
+Timer: 18829 ticks
+Thread: 12800 idle ticks, 6029 kernel ticks, 0 user ticks
 Console: 5302 characters output
 Keyboard: 0 keys pressed
 Powering off...
