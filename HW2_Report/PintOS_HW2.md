@@ -20,20 +20,6 @@
 ### Implementation
 
 ```c
-bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux) {
-  struct thread *a_thread = list_entry(a, struct thread, elem);
-  struct thread *b_thread = list_entry(b, struct thread, elem);
-
-  if (a_thread->priority > b_thread->priority)
-    return true;
-  else
-    return false;
-}
-```
-
-먼저 우선 순위를 비교하기 위해 `less_pri_comp`를 만들었다.
-
-```c
 void thread_yield(void) {
   ...
   if (cur != idle_thread) {
@@ -49,7 +35,7 @@ void thread_unblock(struct thread *t) {
 }
 ```
 
-이렇게 스케쥴링을 위해 `ready_list`에 접근 할 때, 우선 순위에 따라 정렬되게 했으므로, `ready_list`는 항상 정렬된 상태로 있다.
+이렇게 스케쥴링을 위해 `ready_list`에 접근 할 때, 우선 순위에 따라 정렬되게 했으므로, `ready_list`는 항상 정렬된 상태로 있다. `less_pri_comp`는 입력 받은 쓰레드의 priority를 비교하는 함수이다.
 
 ```c
 void thread_set_priority(int new_priority) {
@@ -205,19 +191,8 @@ void lock_release(struct lock *lock) {
 }
 ```
 
-`less_donation_pri_comp`는 쓰레드의 `donationelem`의 우선 순위를 비교하기 위해 만든 함수이다.
+`less_donation_pri_comp`는 쓰레드의 `donationelem`의 우선 순위를 비교하기 위해 만든 함수로, 첫 번째 인자의 donationelem의 우선 순위가 이 두 번째 인자보다 높은지 파악한다.
 
-```c
-bool less_donation_pri_comp(struct list_elem *a, struct list_elem *b, void *aux) {
-  struct thread *a_thread = list_entry(a, struct thread, donationelem);
-  struct thread *b_thread = list_entry(b, struct thread, donationelem);
-
-  if (a_thread->priority > b_thread->priority)
-    return true;
-  else
-    return false;
-}
-```
 
 # Result
 
