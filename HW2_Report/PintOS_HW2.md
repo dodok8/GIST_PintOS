@@ -20,8 +20,7 @@
 ### Implementation
 
 ```c
-bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
-{
+bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux) {
   struct thread *a_thread = list_entry(a, struct thread, elem);
   struct thread *b_thread = list_entry(b, struct thread, elem);
 
@@ -35,21 +34,15 @@ bool less_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
 먼저 우선 순위를 비교하기 위해 `less_pri_comp`를 만들었다.
 
 ```c
-void thread_yield(void)
-{
+void thread_yield(void) {
   ...
-  if (cur != idle_thread)
-  {
+  if (cur != idle_thread) {
     list_insert_ordered(&ready_list, &cur->elem, &less_pri_comp, NULL);
   }
   ...
 }
-
-```
-
-```c
-void thread_unblock(struct thread *t)
-{
+...
+void thread_unblock(struct thread *t) {
   ...
   list_insert_ordered(&ready_list, &t->elem, &less_pri_comp, NULL);
   ...
@@ -59,8 +52,7 @@ void thread_unblock(struct thread *t)
 이렇게 스케쥴링을 위해 `ready_list`에 접근 할 때, 우선 순위에 따라 정렬되게 했으므로, `ready_list`는 항상 정렬된 상태로 있다.
 
 ```c
-void thread_set_priority(int new_priority)
-{
+void thread_set_priority(int new_priority) {
   ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX); // priority로 적합하지 않은 값이 들어올 경우 정지
   ...
   struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
@@ -73,21 +65,6 @@ void thread_set_priority(int new_priority)
 만약 현재 쓰레드의 우선 순위가 변경된 경우, `read_list`의 다른 요소들은 이미 정렬된 상태이므로, 현재 쓰레드와 `ready_list`의 바로 다음 쓰레드를 비교해서 `thread_yield`를 호출하는 것으로 switching을 할 수 있다.
 
 또한 테스트 과정에서 Time Out 문제가 계속 발생 했는데, 이는 qemu에서 기존 PintOS의 `0x8900`에서 종료 시퀀스를 지원하지 않기 때문에 생기는 문제임을 확인하고, 종료 포트에 대한 데이터를 수정해서 정상 종료 되도록 하였다. [참고자료](https://www.google.com/url?q=https://stackoverflow.com/questions/39805784/timeout-in-tests-when-running-pintos&sa=D&source=docs&ust=1649513438087802&usg=AOvVaw2vKN1qP73lsEsgO_pBGFdm)
-
-```c
-void
-shutdown_power_off (void)
-{
-  ...
-  outw (0xB004, 0x2000);
-
-  /* This is a special power-off sequence supported by Bochs and
-     QEMU, but not by physical hardware. */
-  for (p = s; *p != '\0'; p++)
-    outb (0x8900, *p);
-  ...
-}
-```
 
 ## Problem 2
 
@@ -117,31 +94,27 @@ Donating으로 변경되는 우선 순위 정보와 락에 관한 정보를 변�
 먼저 `struct thread`는 이렇게 확장되었다.
 
 ```c
-struct thread
-  {
+struct thread {
     ...
     int real_priority;
     struct list donation_list;
     struct lock *cur_waiting_lock;
     struct list_elem donationelem;
     ...
-  };
-
+};
 ```
 
 그리고 이렇게 확장된 쓰레드에 맞춰서 `thread_set_priority`가 변경되도록 하였다. 진짜 우선 순위와 우선 순위 둘 다 변경하고, donation이 일어난 상황일 경우, 이에 맞게 우선 순위를 변경하도록 하였다.
 
 ```c
-void thread_set_priority(int new_priority)
-{
+void thread_set_priority(int new_priority) {
   ASSERT(PRI_MIN <= new_priority && new_priority <= PRI_MAX);
   struct thread *t = thread_current();
   t->real_priority = new_priority;
   t->priority = new_priority;
   struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
 
-  if (!list_empty(&t->donation_list))
-  {
+  if (!list_empty(&t->donation_list)) {
     list_sort(&t->donation_list, &less_pri_comp, NULL);
     struct thread *next_donation_t=list_entry(list_front(&t->donation_list), struct thread, donationelem);
     if(t->priority < next_donation_t->priority)
@@ -155,23 +128,18 @@ void thread_set_priority(int new_priority)
 Semaphore 관련 함수들도 `list_inserted_order`와 `list_sort`를 사용하여 우선 순위를 지키며 `waiters`에 저장되게 하였다.
 
 ```c
-...
-void sema_down(struct semaphore *sema)
-{
+void sema_down(struct semaphore *sema) {
   ...
-  while (sema->value == 0)
-  {
+  while (sema->value == 0) {
     list_insert_ordered(&sema->waiters, &thread_current()->elem, &less_pri_comp, NULL);
     thread_block();
   }
   ...
 }
 ...
-void sema_up(struct semaphore *sema)
-{
+void sema_up(struct semaphore *sema) {
   ...
-  if (!list_empty(&sema->waiters))
-  {  
+  if (!list_empty(&sema->waiters)) {  
     list_sort(&sema->waiters, &less_pri_comp, NULL);
     thread_unblock(list_entry(list_pop_front(&sema->waiters), struct thread, elem));
   }
@@ -179,20 +147,16 @@ void sema_up(struct semaphore *sema)
   decide_preemption();
   intr_set_level(old_level);
 }
-...
 ```
 
 `decide_preemption`은 `thread_unlock` 에 따라 `ready_list`에 변화가 생겼을 수 있으므로, 이에 priority에 따라 작동하도록 다음과 같은 일을 한다.
 
 ```c
-// function to compare to decide preemption of next thread by yield (pintos 2nd project)
-void decide_preemption()
-{
+void decide_preemption() {
   struct thread *cur_t = thread_current();
   struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
 
-  if (cur_t->priority < next_t->priority)
-  {
+  if (cur_t->priority < next_t->priority) {
     thread_yield();
   }
 }
@@ -202,24 +166,20 @@ void decide_preemption()
 
 ```c
 ...
-void lock_acquire(struct lock *lock)
-{
+void lock_acquire(struct lock *lock) {
   ASSERT(lock != NULL);
   ASSERT(!intr_context());
   ASSERT(!lock_held_by_current_thread(lock));
 
-  if(lock->holder!=NULL && (lock->holder->priority < thread_current()->priority))
-  {
+  if(lock->holder!=NULL && (lock->holder->priority < thread_current()->priority)) {
     // 락의 홀더 존재 여부와 우선 순위를 비교하여, 아래와 같이 donation을 진행한다.
     thread_current()->cur_waiting_lock=lock;
     list_insert_ordered(&lock->holder->donation_list, &thread_current()->donationelem, &less_donation_pri_comp, NULL);
-    
-    // 도네이션 진행 중, 중첩된 도네이션이 일어났는지 확인하며 거슬러 올라가며 변경한다.
+
     int nested_num=0;
     struct thread *tmp_t=thread_current();
     struct thread *holder_t;
-    while(tmp_t->cur_waiting_lock!=NULL)
-    {
+    while(tmp_t->cur_waiting_lock!=NULL) {
       if(nested_num>=8)
         break;
       holder_t=tmp_t->cur_waiting_lock->holder;
@@ -229,22 +189,17 @@ void lock_acquire(struct lock *lock)
     }
   }
 
-
   sema_down (&lock->semaphore);
   thread_current()->cur_waiting_lock=NULL;
   lock->holder = thread_current ();
 }
-
 ...
-
-void lock_release(struct lock *lock)
-{
+void lock_release(struct lock *lock) {
   ...
   struct thread *release_t=lock->holder;
   struct list_elem *tmp_elem=list_begin(&release_t->donation_list);
   // 도네이션 리스트를 순회하며, 현재 락을 기다리고 있는 요소들을 도네이션 리스트에서 제거한다.
-  while(tmp_elem!=list_end(&release_t->donation_list))
-  {
+  while(tmp_elem!=list_end(&release_t->donation_list)) {
     struct thread *tmp_t=list_entry(tmp_elem, struct thread, donationelem);
     if(tmp_t->cur_waiting_lock==lock)
       list_remove(&tmp_t->donationelem);
@@ -252,15 +207,13 @@ void lock_release(struct lock *lock)
   }
 
   release_t->priority=release_t->real_priority;
-  if(!list_empty(&release_t->donation_list))
-  {
+  if(!list_empty(&release_t->donation_list)) {
     list_sort(&release_t->donation_list, &less_donation_pri_comp, NULL);
     struct thread *next_donation_t=list_entry(list_front(&release_t->donation_list), struct thread, donationelem);
     if(release_t->priority < next_donation_t->priority)
       // 다음 도네이션을 하는 쓰레드의 우선 순위로 변경한다.
       release_t->priority=next_donation_t->priority;
   }
-  
 
   lock->holder = NULL;
   sema_up(&lock->semaphore);
@@ -270,8 +223,7 @@ void lock_release(struct lock *lock)
 `less_donation_pri_comp`는 쓰레드의 `donationelem`의 우선 순위를 비교하기 위해 만든 함수이다.
 
 ```c
-bool less_donation_pri_comp(struct list_elem *a, struct list_elem *b, void *aux)
-{
+bool less_donation_pri_comp(struct list_elem *a, struct list_elem *b, void *aux) {
   struct thread *a_thread = list_entry(a, struct thread, donationelem);
   struct thread *b_thread = list_entry(b, struct thread, donationelem);
 
