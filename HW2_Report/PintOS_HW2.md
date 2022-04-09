@@ -149,28 +149,14 @@ void sema_up(struct semaphore *sema) {
 }
 ```
 
-`decide_preemption`은 `thread_unlock` 에 따라 `ready_list`에 변화가 생겼을 수 있으므로, 이에 priority에 따라 작동하도록 다음과 같은 일을 한다.
-
-```c
-void decide_preemption() {
-  struct thread *cur_t = thread_current();
-  struct thread *next_t = list_entry(list_begin(&ready_list), struct thread, elem);
-
-  if (cur_t->priority < next_t->priority) {
-    thread_yield();
-  }
-}
-```
+`decide_preemption`은 `thread_unlock` 에 따라 `ready_list`에 변화가 생겼을 수 있으므로, 이에 priority에 따라 작동하도록 `ready_list`의 첫 요소와 우선 순위를 비교해, 다음 요소가 더 우선순위가 높으면 `thread_yield()`를 호출 한다.
 
 `lock`과 관련된 함수도 nested donation과 이에 따른 priority 업데이트를 반영하기 위해 다음과 같이 변경한다.
 
 ```c
 ...
 void lock_acquire(struct lock *lock) {
-  ASSERT(lock != NULL);
-  ASSERT(!intr_context());
-  ASSERT(!lock_held_by_current_thread(lock));
-
+  ...
   if(lock->holder!=NULL && (lock->holder->priority < thread_current()->priority)) {
     // 락의 홀더 존재 여부와 우선 순위를 비교하여, 아래와 같이 donation을 진행한다.
     thread_current()->cur_waiting_lock=lock;
@@ -198,7 +184,7 @@ void lock_release(struct lock *lock) {
   ...
   struct thread *release_t=lock->holder;
   struct list_elem *tmp_elem=list_begin(&release_t->donation_list);
-  // 도네이션 리스트를 순회하며, 현재 락을 기다리고 있는 요소들을 도네이션 리스트에서 제거한다.
+  // 도네이션 리스트를 순회하며, 현재 락을 기다리면 도네이션 리스트에서 제거한다.
   while(tmp_elem!=list_end(&release_t->donation_list)) {
     struct thread *tmp_t=list_entry(tmp_elem, struct thread, donationelem);
     if(tmp_t->cur_waiting_lock==lock)
@@ -211,7 +197,6 @@ void lock_release(struct lock *lock) {
     list_sort(&release_t->donation_list, &less_donation_pri_comp, NULL);
     struct thread *next_donation_t=list_entry(list_front(&release_t->donation_list), struct thread, donationelem);
     if(release_t->priority < next_donation_t->priority)
-      // 다음 도네이션을 하는 쓰레드의 우선 순위로 변경한다.
       release_t->priority=next_donation_t->priority;
   }
 
