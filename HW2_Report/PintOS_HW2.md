@@ -64,7 +64,7 @@ Donating으로 변경되는 우선 순위 정보와 락에 관한 정보를 변�
 
 세마포어와 컨디션 관련 함수들도 작동 구조를 변경했다. 원래 세마포어의 `waiters`는 순차적으로 들어가지만, 이를 우선 순위에 따라서 진행되도록 넣는 것으로 변경하였고, 삭제 시에도 정렬을 해서 우선 순위가 지켜지도록 바꾸었다.
 
-락을 얻는 과정(`void lock_acquire(struct lock *lock)`)도 바뀌었는데, Priority Donation이 일어나는 상황이 경우, holder가 NULL이 아니면 이미 기존에 락을 가져간 쓰레드가 있다는 것이므로, 이 때 priority를 비교하여 진행해야 한다. Donation이 진행되어야 하는 경우(holder보다 현재 쓰레드의 priority가 높은 경우), 다음과 같이 진행된다.
+락을 얻는 과정(`void lock_acquire(struct lock *lock)`)도 바뀌었는데, Priority Donation이 일어나는 경우, holder가 NULL이 아니면 이미 기존에 락을 가져간 쓰레드가 있다는 것이므로, priority를 비교하여 진행해야 한다. Donation이 진행되어야 하는 경우(holder보다 현재 쓰레드의 priority가 높은 경우), 다음과 같이 진행된다.
 
  1. 각 쓰레드의 기다리는 락을 현재 락으로 변경 한다.
  2. holder의 도네이션 리스트에 현재 쓰레드를 우선 순위에 따라 저장한다.
