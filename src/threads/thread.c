@@ -453,7 +453,7 @@ void thread_set_priority(int new_priority)
   if (!list_empty(&t->donation_list))
   {
     list_sort(&t->donation_list, &less_pri_comp, NULL);
-    struct thread *next_donation_t=list_entry(list_front(&t->donation_list), struct thread, donationelem);
+    struct thread *next_donation_t=list_entry(list_front(&t->donation_list), struct thread, elem);
     if(t->priority < next_donation_t->priority)
       t->priority=next_donation_t->priority;
   }

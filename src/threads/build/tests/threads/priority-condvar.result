@@ -1,1 +1,11 @@
-PASS
+FAIL
+Kernel panic in run: PANIC at ../../lib/kernel/list.c:84 in list_next(): assertion `is_head (elem) || is_interior (elem)' failed.
+Call stack: 0xc00288ac 0xc0028ce3 0xc0022c98 0xc002c11d 0xc002a7ca 0xc00207d1 0xc0020771
+Translation of call stack:
+0xc00288ac: debug_panic (.../../lib/kernel/debug.c:38)
+0xc0028ce3: is_sorted (.../../lib/kernel/list.c:344)
+0xc0022c98: lock_release (...../../threads/synch.c:254)
+0xc002c11d: test_priority_condvar (...ads/priority-condvar.c:36)
+0xc002a7ca: run_test (.../tests/threads/tests.c:57)
+0xc00207d1: run_task (.../../../threads/init.c:292)
+0xc0020771: run_actions (.../../../threads/init.c:341)

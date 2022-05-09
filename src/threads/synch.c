@@ -195,7 +195,7 @@ void lock_acquire(struct lock *lock)
   if(lock->holder!=NULL && (lock->holder->priority < thread_current()->priority))
   {
     thread_current()->cur_waiting_lock=lock;
-    list_insert_ordered(&lock->holder->donation_list, &thread_current()->donationelem, &less_donation_pri_comp, NULL);
+    list_insert_ordered(&lock->holder->donation_list, &thread_current()->elem, &less_pri_comp, NULL);
     
     int nested_num=0;
     struct thread *tmp_t=thread_current();
@@ -250,17 +250,18 @@ void lock_release(struct lock *lock)
   struct list_elem *tmp_elem=list_begin(&release_t->donation_list);
   while(tmp_elem!=list_end(&release_t->donation_list))
   {
-    struct thread *tmp_t=list_entry(tmp_elem, struct thread, donationelem);
+    struct thread *tmp_t=list_entry(tmp_elem, struct thread, elem);
+    struct list_elem *tmp_elem2=list_next(tmp_elem);
     if(tmp_t->cur_waiting_lock==lock)
-      list_remove(&tmp_t->donationelem);
-    tmp_elem=list_next(tmp_elem);
+      list_remove(&tmp_t->elem);
+    tmp_elem=tmp_elem2;
   }
 
   release_t->priority=release_t->real_priority;
   if(!list_empty(&release_t->donation_list))
   {
-    list_sort(&release_t->donation_list, &less_donation_pri_comp, NULL);
-    struct thread *next_donation_t=list_entry(list_front(&release_t->donation_list), struct thread, donationelem);
+    list_sort(&release_t->donation_list, &less_pri_comp, NULL);
+    struct thread *next_donation_t=list_entry(list_front(&release_t->donation_list), struct thread, elem);
     if(release_t->priority < next_donation_t->priority)
       release_t->priority=next_donation_t->priority;
   }

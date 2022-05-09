@@ -1,25 +1,22 @@
-qemu-system-i386 -hda /tmp/LDYmjjpRom.dsk -m 4 -net none -nographic -monitor null
+qemu-system-i386 -hda /tmp/LxZaZkU0Uf.dsk -m 4 -net none -nographic -monitor null
 PiLo hda1
 Loading.........
 Kernel command line: -q run priority-donate-sema
 Pintos booting with 4,088 kB RAM...
 382 pages available in kernel pool.
 382 pages available in user pool.
-Calibrating timer...  523,468,800 loops/s.
+Calibrating timer...  435,814,400 loops/s.
 Boot complete.
 Executing 'priority-donate-sema':
 (priority-donate-sema) begin
 (priority-donate-sema) Thread L acquired lock.
-(priority-donate-sema) Thread L downed semaphore.
-(priority-donate-sema) Thread H acquired lock.
-(priority-donate-sema) Thread H finished.
-(priority-donate-sema) Thread M finished.
-(priority-donate-sema) Thread L finished.
-(priority-donate-sema) Main thread finished.
-(priority-donate-sema) end
-Execution of 'priority-donate-sema' complete.
-Timer: 26 ticks
-Thread: 0 idle ticks, 26 kernel ticks, 0 user ticks
-Console: 732 characters output
+(priority-donate-sema) Kernel PANIC at ../../lib/kernel/list.c:84 in list_next(): assertion `is_head (elem) || is_interior (elem)' failed.
+Call stack: 0xc00288ac 0xc0028ce3 0xc0022c98 0xc002a5ae 0xc002a688 0xc00270d7 0xc002a707 0xc002b9df 0xc00212e0.
+The `backtrace' program can make call stacks useful.
+Read "Backtraces" in the "Debugging Tools" chapter
+of the Pintos documentation for more information.
+Timer: 30 ticks
+Thread: 0 idle ticks, 30 kernel ticks, 0 user ticks
+Console: 796 characters output
 Keyboard: 0 keys pressed
 Powering off...
