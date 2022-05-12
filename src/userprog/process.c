@@ -18,6 +18,8 @@
 #include "threads/thread.h"
 #include "threads/vaddr.h"
 
+#define DELIM_CHARS " "
+
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
 
@@ -41,7 +43,7 @@ process_execute (const char *file_name)
   printf("@@@@@@@@@@@@@now first tokenize execute\n");
   //code modify-for tokenize
   char *tmp_ptr;
-  char *token=strtok_r(file_name, " ", &tmp_ptr);
+  char *token=strtok_r(file_name, DELIM_CHARS, &tmp_ptr);
   
   printf("@@@@@@@@@@@@@now thread_create execute\n");
   /* Create a new thread to execute FILE_NAME. */
@@ -69,7 +71,7 @@ start_process (void *file_name_)
   char *arg_argv[128];
 
   char *tmp_ptr;
-  char *token=strtok_r(fn_copy, " ", &tmp_ptr);
+  char *token=strtok_r(fn_copy, DELIM_CHARS, &tmp_ptr);
   while(token!=NULL)
   {
     arg_argv[arg_argc]=token;
@@ -86,7 +88,11 @@ start_process (void *file_name_)
 
   //code modify-for argument load to user stack
   if (success)
-    argument_stack(arg_argv, arg_argc, &if_);
+  {  
+    argument_stack(arg_argv, arg_argc, &if_.esp);
+    if_.edi = arg_argc;
+    if_.esi = if_.esp + 8;
+  }
   hex_dump(if_.esp, if_.esp, PHYS_BASE-if_.esp, true);
 
   /* If load failed, quit. */
@@ -105,40 +111,38 @@ start_process (void *file_name_)
 }
 
 //code modify-for argument_stack implementation
-void argument_stack(char **argv, int argc, struct intr_frame *if_)
+void argument_stack(char **argv, int argc, void **esp)
 {
   printf("@@@@@@@@@@@@@now argument_stack execute\n");
   char *argv_ptr_arr[128];
-  for(int idx=argc-1; idx>=0; idx--)
+  int idx;
+  for(idx=argc-1; idx>=0; idx--)
   {
     int tmp_len=strlen(argv[idx]);
-    if_->rsp=if_->rsp-(tmp_len+1);
-    memcpy(if_->rsp, argv[idx], tmp_len+1);
-    argv_ptr_arr[idx]=if_->rsp;
+    (*esp)=(*esp)-(tmp_len+1);
+    memcpy(*esp, argv[idx], tmp_len+1);
+    argv_ptr_arr[idx]=*esp;
   }
 
   while(true)
   {
-    if(if_->rsp % 8 != 0)
+    if((int)(*esp) % 8 != 0)
       break;
-    if_->rsp--;
-    *(uint8_t *)(if_->rsp) = 0;
+    (*esp)--;
+    **(char ***)esp = 0;
   }
 
-  for(int idx=argc; idx>=0; idx--)
+  for(idx=argc; idx>=0; idx--)
   {
-    if_->rsp-=8;
+    (*esp)-=8;
     if(idx==argc)
-      memset(if_->rsp, 0, sizeof(char **));
+      memset((*esp), 0, sizeof(char **));
     else
-      memcpy(if_->rsp, &argv_ptr_arr[idx], sizeof(char **));
+      memcpy((*esp), &argv_ptr_arr[idx], sizeof(char **));
   }
 
-  if_->rsp-=8;
-  memset(if_->rsp, 0, sizeof(void *));
-
-  if_->R.rdi = argc;
-  if_->R.rsi = if_->rsp + 8;
+  (*esp)-=8;
+  memset((*esp), 0, sizeof(void *));
 }
 
 /* Waits for thread TID to die and returns its exit status.  If
