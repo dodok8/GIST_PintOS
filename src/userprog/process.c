@@ -17,6 +17,7 @@
 #include "threads/palloc.h"
 #include "threads/thread.h"
 #include "threads/vaddr.h"
+#define DELIM_CHARS " "
 
 static thread_func start_process NO_RETURN;
 static bool load (const char *cmdline, void (**eip) (void), void **esp);
@@ -38,8 +39,12 @@ process_execute (const char *file_name)
     return TID_ERROR;
   strlcpy (fn_copy, file_name, PGSIZE);
 
+  //code modify-for name tokenize
+  char *tmp_ptr;
+  char *token=strtok_r(file_name, DELIM_CHARS, &tmp_ptr);
+
   /* Create a new thread to execute FILE_NAME. */
-  tid = thread_create (file_name, PRI_DEFAULT, start_process, fn_copy);
+  tid = thread_create (token, PRI_DEFAULT, start_process, fn_copy);
   if (tid == TID_ERROR)
     palloc_free_page (fn_copy); 
   return tid;
@@ -54,13 +59,37 @@ start_process (void *file_name_)
   struct intr_frame if_;
   bool success;
 
+  //code modify-argument tokenize
+  char *fn_copy;
+  strlcpy(fn_copy, file_name, PGSIZE);
+  int arg_argc=0;
+  char *arg_argv[128];
+
+  char *tmp_ptr;
+  char *token=strtok_r(fn_copy, DELIM_CHARS, &tmp_ptr);
+  while(token!=NULL)
+  {
+    arg_argv[arg_argc]=token;
+    token=strtok_r(NULL, DELIM_CHARS, &tmp_ptr);
+    arg_argc++;
+  }
+
   /* Initialize interrupt frame and load executable. */
   memset (&if_, 0, sizeof if_);
   if_.gs = if_.fs = if_.es = if_.ds = if_.ss = SEL_UDSEG;
   if_.cs = SEL_UCSEG;
   if_.eflags = FLAG_IF | FLAG_MBS;
-  success = load (file_name, &if_.eip, &if_.esp);
-
+  success = load (arg_argv[0], &if_.eip, &if_.esp);
+  
+  //code modify-for argument load to user stack
+  if (success)
+  {
+    argument_stack(arg_argv, arg_argc, &if_.esp);
+    if_.edi=arg_argc;
+    if_.esi=if_.esp+8;
+  }
+  hex_dump(if_.esp, if_.esp, PHYS_BASE-if_.esp, true);
+  
   /* If load failed, quit. */
   palloc_free_page (file_name);
   if (!success) 
@@ -74,6 +103,40 @@ start_process (void *file_name_)
      and jump to it. */
   asm volatile ("movl %0, %%esp; jmp intr_exit" : : "g" (&if_) : "memory");
   NOT_REACHED ();
+}
+
+//code modify-for argument_stack implementation
+void argument_stack(char **argv, int argc, void **esp)
+{
+  char *argv_ptr_arr[128];
+  int idx;
+  for(idx=argc-1; idx>=0; idx--)
+  {
+    int tmp_len=strlen(argv[idx]);
+    (*esp)=(*esp)-(tmp_len+1);
+    memcpy(*esp, argv[idx], tmp_len+1);
+    argv_ptr_arr[idx]=*esp;
+  }
+
+  while(true)
+  {
+    if((int)(*esp) % 8 != 0)
+      break;
+    (*esp)--;
+    **(char ***)esp = 0;
+  }
+
+  for(idx=argc; idx>=0; idx--)
+  {
+    (*esp)-=8;
+    if(idx==argc)
+      memset((*esp), 0, sizeof(char **));
+    else
+      memcpy((*esp), &argv_ptr_arr[idx], sizeof(char **));
+  }
+
+  (*esp)-=8;
+  memset((*esp), 0, sizeof(void *));
 }
 
 /* Waits for thread TID to die and returns its exit status.  If
